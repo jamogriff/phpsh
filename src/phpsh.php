@@ -16,18 +16,23 @@
 // set the TFBENV to script
 $_SERVER['TFBENV'] = 16777216;
 
-// FIXME: www/lib/thrift/packages/falcon/falcon.php is huge
-//  this is probably not the right fix, but we need it for now
+// Memory limit comes in as 128M, 128K, etc
+// Splitting int from memory type and adding headroom
+// fixes a PHP error not caught in OG implementation
 $memory_limit = ini_get('memory_limit');
-switch(strtolower($memory_limit[strlen($memory_limit)-1])) {
+$memory_int= substr($memory_limit, 0, -1);
+$memory_type = strtolower($memory_limit[-1]);
+switch($memory_type) {
   case 'g':
-    $memory_limit *= 1024;
+    $memory_int *= 1024;
   case 'm':
-    $memory_limit *= 1024;
+    $memory_int *= 1024;
   case 'k':
-    $memory_limit *= 1024;
+    $memory_int *= 1024;
 }
-ini_set('memory_limit', $memory_limit * 2);
+
+// Concatenating int with type for setting new memory limit
+ini_set('memory_limit', $memory_int * 2 . $memory_type);
 
 if (version_compare(PHP_VERSION, '5.0.0', '<')) {
   fwrite(STDERR, 'Fatal error: phpsh requires PHP 5 or greater');
