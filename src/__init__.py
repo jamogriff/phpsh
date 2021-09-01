@@ -647,7 +647,7 @@ phpsh failed to initialize PHP.
 Fix the problem and hit enter to reload or ctrl-C to quit.""")
 
                 print self.clr_err
-                print "".join(e.stdout_lines + e.stderr_lines)
+                print e.stderr_lines
 
                 if e.line_num:
                     print("\
@@ -705,23 +705,27 @@ Type 'e' to open emacs or 'V' to open vim to %s: %s" %
         p_line = self.p.stdout.readline().rstrip()
 
         if p_line != "#start_autocomplete_identifiers":
-            err_lines = self.p.stderr.readlines()
-            out_lines = self.p.stdout.readlines()
+            # NOTE: Previous version utilized readlines, which
+            # would hang and never resolve.
+            err_line = self.p.stderr.readline()
+            out_line = self.p.stdout.readline()
 
-            parse_error_re = re.compile(
-                "PHP Parse error: .* in (.*) on line ([0-9]*)")
-            m = None
-            for line in reversed(err_lines):
-                m = parse_error_re.match(line)
-                if m:
-                    file_name, line_num = m.groups()
-                    raise ProblemStartingPhp(file_name,
-                                             line_num,
-                                             stdout_lines=out_lines,
-                                             stderr_lines=err_lines)
+            # Section commented out, since iteration isn't necessary using readline()
+            # parse_error_re = re.compile(
+                # "PHP Parse error: .* in (.*) on line ([0-9]*)")
+            # m = None
+            # for line in reversed(err_lines):
+                # m = parse_error_re.match(line)
+                # if m:
+                    # file_name, line_num = m.groups()
+                    # raise ProblemStartingPhp(file_name,
+                                             # line_num,
+                                             # stdout_lines=out_lines,
+                                             # stderr_lines=err_lines)
 
-            raise ProblemStartingPhp(stdout_lines=out_lines,
-                                    stderr_lines=err_lines)
+            # Both stdout and stderr are passed, but only stderr_line is printed
+            raise ProblemStartingPhp(stdout_lines=out_line,
+                                    stderr_lines=err_line)
 
         while True:
             p_line = self.p.stdout.readline().rstrip()
